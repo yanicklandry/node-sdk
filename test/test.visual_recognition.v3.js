@@ -209,6 +209,40 @@ describe('visual_recognition', function() {
     });
   });
 
+  describe('updateClassifier()', function() {
+
+    it('should check no/insufficient parameters provided', function() {
+      visual_recognition.updateClassifier({}, missingParameter);
+      visual_recognition.updateClassifier(null, missingParameter);
+      visual_recognition.updateClassifier(undefined, missingParameter);
+      visual_recognition.updateClassifier({positive_examples: '', classifier_id: 'foo'}, missingParameter);
+      visual_recognition.updateClassifier({foo_positive_examples: '', classifier_id: 'foo'}, missingParameter);
+      visual_recognition.updateClassifier({positive_examples: '', negative_examples: '', classifier_id: 'foo'}, missingParameter); // positive examples must include a tag
+      visual_recognition.updateClassifier({foo_positive_examples: '', negative_examples: ''}, missingParameter); // missing name
+    });
+
+    it('should generate a valid payload with streams', function(done) {
+      var params = {
+        foo_positive_examples: fake_file,
+        negative_examples: fake_file,
+        classifier_id: 'test-c'
+      };
+
+      // todo: make this fully async
+      var req = visual_recognition.updateClassifier(params, function(err) {
+        if (err) {
+          done(err);
+        }
+      });
+      assert.equal(req.uri.href, service.url + classifiers_path);
+      assert.equal(req.method, 'POST');
+      assert.ok(req.formData.foo_positive_examples);
+      assert.ok(req.formData.negative_examples);
+      assert.equal(req.formData.name, params.name);
+      done();
+    });
+  });
+
   describe('deleteClassifier()', function() {
 
     it('should check no parameters provided', function() {

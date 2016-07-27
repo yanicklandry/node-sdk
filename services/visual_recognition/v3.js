@@ -449,6 +449,39 @@ VisualRecognitionV3.prototype.createClassifier = function(params, callback) {
   return requestFactory(parameters, errorFormatter(callback));
 };
 
+VisualRecognitionV3.prototype.updateClassifier = function(params, callback) {
+  params = params || {};
+
+  var example_keys = Object.keys(params).filter(function(key) {
+    return key === NEGATIVE_EXAMPLES || key.match(/^.+_positive_examples$/);
+  });
+
+  if (example_keys.length < 2) {
+    callback(new Error('Missing required parameters: either two *_positive_examples or one *_positive_examples and one negative_examples must be provided.'));
+    return;
+  }
+
+  if(!params.classifier_id) {
+    callback(new Error('Missing required parameter: classifier_id'));
+    return;
+  }
+
+  // todo: validate that all *_examples are streams or else objects with buffers and content-types
+  var allowed_keys = [NEGATIVE_EXAMPLES].concat(example_keys);
+
+  var parameters = {
+    options: {
+      url: '/v3/classifiers/' + params.classifier_id,
+      method: 'POST',
+      json: true,
+      formData: pick(params, allowed_keys)
+    },
+    requiredParams: [],
+    defaultOptions: this._options
+  };
+  return requestFactory(parameters, errorFormatter(callback));
+};
+
 /**
  * Retrieve a list of all classifiers, including built-in and
  * user-created classifiers.
